@@ -1,10 +1,11 @@
 package driver
 
 import (
-	"cloud.google.com/go/bigquery"
 	"context"
 	"database/sql/driver"
 	"fmt"
+
+	"cloud.google.com/go/bigquery"
 )
 
 type bigQueryConnection struct {
@@ -94,7 +95,6 @@ func (connection *bigQueryConnection) Exec(query string, args []driver.Value) (d
 	return statement.Exec(args)
 }
 
-func (bigQueryConnection) CheckNamedValue(*driver.NamedValue) error {
-	// TODO: Revise in the future
-	return nil
+func (connection *bigQueryConnection) CheckNamedValue(namedValue *driver.NamedValue) error {
+	return unwrapValuer(namedValue)
 }

@@ -22,8 +22,8 @@ func (statement bigQueryStatement) NumInput() int {
 	return 0
 }
 
-func (bigQueryStatement) CheckNamedValue(*driver.NamedValue) error {
-	return nil
+func (bigQueryStatement) CheckNamedValue(namedValue *driver.NamedValue) error {
+	return unwrapValuer(namedValue)
 }
 
 func (statement *bigQueryStatement) ExecContext(ctx context.Context, args []driver.NamedValue) (driver.Result, error) {
