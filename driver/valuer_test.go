@@ -36,7 +36,7 @@ func TestBigQueryConnectionCheckNamedValueUnwrapsNestedValuer(t *testing.T) {
 		Value: staticValuer{value: staticValuer{value: "hello"}},
 	}
 
-	err := bigQueryConnection{}.CheckNamedValue(namedValue)
+	err := (&bigQueryConnection{}).CheckNamedValue(namedValue)
 
 	require.NoError(t, err)
 	require.Equal(t, "hello", namedValue.Value)
@@ -61,4 +61,35 @@ func TestBigQueryStatementCheckNamedValueGuardsAgainstInfiniteUnwrap(t *testing.
 	err := bigQueryStatement{}.CheckNamedValue(namedValue)
 
 	require.EqualError(t, err, "valuer unwrap exceeded max depth 100")
+}
+
+func TestBigQueryStatementCheckNamedValueUnwrapsPointers(t *testing.T) {
+	value := true
+	namedValue := &driver.NamedValue{Value: &value}
+
+	err := bigQueryStatement{}.CheckNamedValue(namedValue)
+
+	require.NoError(t, err)
+	require.Equal(t, true, namedValue.Value)
+}
+
+func TestBigQueryStatementCheckNamedValueConvertsNilPointersToNil(t *testing.T) {
+	var value *bool
+	namedValue := &driver.NamedValue{Value: value}
+
+	err := bigQueryStatement{}.CheckNamedValue(namedValue)
+
+	require.NoError(t, err)
+	require.Nil(t, namedValue.Value)
+}
+
+func TestBuildParameterFromNamedValueUnwrapsPointers(t *testing.T) {
+	value := true
+	namedValue := driver.NamedValue{Name: "flag", Value: &value}
+
+	params := buildParameterFromNamedValue(namedValue, nil)
+
+	require.Len(t, params, 1)
+	require.Equal(t, "flag", params[0].Name)
+	require.Equal(t, true, params[0].Value)
 }
